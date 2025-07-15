@@ -43,8 +43,8 @@
                         <li class="dropdown">
 							<a href="#">Resources</a>
 							<ul class="dropdown-menu">
-								<li><a href="solution-single.html">Download Forms</a></li>
-                                <li><a href="solution-single-alter.html">Membership</a></li>
+								<li><a href="{{url('/')}}/downloads">Download Forms</a></li>
+                                <li><a href="{{url('/')}}/membership">Membership</a></li>
 							</ul>
 						</li>
 						<li><a href="{{url('contact-us')}}">Contact Us</a></li>

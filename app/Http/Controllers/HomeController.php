@@ -122,4 +122,12 @@ class HomeController extends Controller
         // return view('front.single-service', compact('service'));
         return view('front.single-service', compact('slung', 'meta','service'));
     }
+
+    public function membership(){
+        
+    }
+
+    public function downloads(){
+
+    }
 }

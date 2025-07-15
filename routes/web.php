@@ -13,6 +13,10 @@ Route::get('/copyright-policy', [HomeController::class, 'copyright'])->name('cop
 Route::get('/services', [HomeController::class, 'services'])->name('services');
 Route::get('/services/{slung}', [HomeController::class, 'singleService'])->name('services.single');
 Route::get('/join-us', [HomeController::class, 'joinUs'])->name('join-us');
+Route::get('/downloads', [HomeController::class, 'downloads'])->name('downloads');
+Route::get('/membership', [HomeController::class, 'membership'])->name('membership');
+
+
 
 
 Auth::routes();
