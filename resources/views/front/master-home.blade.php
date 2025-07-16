@@ -71,17 +71,21 @@
 	<div class="copyright">
 		<div class="container">
 			<div class="row">
-				<div class="site-copy col-sm-7">
-					<p>&copy; {{date('Y')}} NNK Staff Sacco Limited <span class="sep"> . </span> Licensed NI099999<span class="sep"> . </span> <a href="#">Terms and Condition</a></p>
-				</div>
-				<div class="site-by col-sm-5 al-right">
-					<p>Powered By <a href="http://designekta.com/" target="_blank">Designekta Studios.</a></p>
-				</div>
- 				
+			<div class="site-copy col-12 col-md-7 mb-2 mb-md-0">
+				<p>
+				&copy; {{ date('Y') }} NNK Staff Sacco Limited 
+				<span class="sep"> . </span> Licensed NI099999
+				<span class="sep"> . </span> <a href="#">Terms and Conditions</a>
+				</p>
+			</div>
+			<div class="site-by col-12 col-md-5 text-md-end">
+				<p>Powered By <a href="http://designekta.com/" target="_blank">Designekta Studios</a>.</p>
+			</div>
 			</div>
 		</div>
 	</div>
 	<!-- End Copyright -->
+
 
 	<!-- Preload Image for Slider -->
 	<div class="preload hide">

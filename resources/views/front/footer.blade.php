@@ -36,10 +36,10 @@
 							<h5 class="wgs-title">Legal Info</h5>
 							<div class="wgs-content">
 								<ul class="menu">
-									<li><a href="index-2.html">Privacy Policy</a></li>
-									<li><a href="about-us.html">Term and Conditions</a></li>
-									<li><a href="news.html">Copyright Statement</a></li>
-									<li><a href="resources.html">Rules and Regulations</a></li>
+									<li><a href="{{url('/')}}/privacy-policy">Privacy Policy</a></li>
+									<li><a href="{{url('/')}}/terms-and-conditions">Term and Conditions</a></li>
+									<li><a href="{{url('/')}}/copyright-policy">Copyright Statement</a></li>
+									<li><a href="{{url('/')}}/rules-and-regulations">Rules and Regulations</a></li>
 								</ul>
 							</div>
 						</div>
@@ -54,7 +54,7 @@
 								<p><strong>Industrial Company Name</strong><br>
 									St. George's House, Parliament road, 4th floor,Nairobi</p>
 								<p><span>Toll Free</span>: 222 9281<br>
-									<span>Phone</span>: (+254) 723 014032</p>
+									<span>Phone</span>: (+254)  0720 496 849</p>
 								<ul class="social">
 									<li><a href="#"><em class="fa fa-facebook" aria-hidden="true"></em></a></li>
 									<li><a href="#"><em class="fa fa-twitter" aria-hidden="true"></em></a></li>

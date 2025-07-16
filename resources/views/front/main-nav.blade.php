@@ -3,8 +3,8 @@
 			<div class="container">
 				<!-- Logo -->
 				<a class="navbar-brand" href="{{url('/')}}">
-					<img class="logo logo-dark logo-correction" alt="" src="{{url('/')}}/uploads/NNK-Logo-200x131.png" srcset="{{url('/')}}/uploads/NNK-Logo-200x131.png 2x">
-					<img class="logo logo-light logo-correction" alt="" src="{{url('/')}}/uploads/NNK-Logo-200x131.png" srcset="{{url('/')}}/uploads/NNK-Logo-200x131.png 2x">
+					<img class="logo logo-dark logo-correction" alt="NNK Staff Sacco Logo" style="margin-top:0px !important; padding-top:0px !important;"  src="{{url('/')}}/uploads/NNK-Logo-200x132.png" srcset="{{url('/')}}/uploads/NNK-Logo-200x132.png 2x">
+					<img class="logo logo-light logo-correction" alt="NNK Staff Sacco Logo" style="margin-top:0px !important; padding-top:0px !important;" src="{{url('/')}}/uploads/NNK-Logo-200x132.png" srcset="{{url('/')}}/uploads/NNK-Logo-200x132.png 2x">
 				</a>
 				<!-- #end Logo -->
 				<div class="navbar-header">

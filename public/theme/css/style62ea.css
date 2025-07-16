@@ -9113,6 +9113,12 @@ h3.heading-lead+.lead {
 .image-resizer{
 	height:280px !important;
 }
+.logo-correction{
+	height: 80px;
+	width:200px !important;
+	object-fit: contain;
+} 
+
 
 @media only screen and (max-width: 767px) {
     .vertical-center {
@@ -9130,4 +9136,20 @@ h3.heading-lead+.lead {
 	.margin-auto-0{
 		margin: 0 auto !important;
 	}
-}
+	.copyright{
+		text-align: center !important;
+		margin:0 auto !important;
+	}
+	.site-copy{
+        text-align: center !important;
+		margin:0 auto !important;
+	}
+	.site-by{
+        text-align: center !important;
+		margin:0 auto !important;
+	}
+	.logo-correction{
+		height: auto;
+		width:100px !important;
+	} 
+} 

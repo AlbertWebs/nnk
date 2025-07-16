@@ -79,7 +79,7 @@ class HomeController extends Controller
             'image' => asset('images/terms-og-image.jpg'),
             'url' => url('/terms-and-conditions'),
         ];
-        return view('front.terms', compact('meta'));
+        return view('front.terms-and-conditions', compact('meta'));
     }
 
     public function copyright() {
@@ -124,10 +124,47 @@ class HomeController extends Controller
     }
 
     public function membership(){
-        
+        $meta = [
+            'title' => 'Membership - NNK Sacco Limited',
+            'description' => 'Learn about our membership options and how to join NNK Sacco Limited.',
+            'keywords' => 'NNK Sacco membership, membership options, join NNK Sacco',
+            'author' => 'NNK Sacco Limited',
+            'image' => asset('images/membership-og-image.jpg'),
+            'url' => url('/membership'),
+        ];
+        return view('front.membership', compact('meta'));
     }
 
     public function downloads(){
+       $meta = 
+       [
+            'title' => 'Downloads - NNK Sacco Limited',
+            'description' => 'Explore the range of financial articles offered by NNK Sacco Limited.',
+            'keywords' => 'NNK Sacco services, financial services Kenya',
+            'author' => 'NNK Sacco Limited',
+            'image' => asset('images/services-og-image.jpg'),
+            'url' => url('/downloads'),
+        ];
+        return view('front.downloads', compact('meta'));
+    }
+   public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'quote-request-name' => 'required|string|max:255',
+            'quote-request-email' => 'required|email',
+            'quote-request-phone' => 'required',
+            'quote-request-message' => 'required',
+            'quote-request-interest' => 'array|nullable',
+            'g-recaptcha-response' => 'required|captcha',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Send email notification
+        Mail::to('admin@nnkstaffsacco.com')->send(new MembershipApplicationMail($request->all()));
+
+        return response()->json(['message' => 'Your application has been received and emailed.']);
     }
 }

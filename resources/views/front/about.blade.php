@@ -127,7 +127,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 even wow fadeInUp" data-wow-delay="0.1s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="image/team-a.jpg">
+                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Charles Njagi</h4>
@@ -139,7 +139,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.2s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="image/team-b.jpg">
+                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Rose Munuthi</h4>
@@ -151,7 +151,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 even wow fadeInUp" data-wow-delay="0.3s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="image/team-c.jpg">
+                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Rose Kiama</h4>
@@ -163,7 +163,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.4s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="image/team-d.jpg">
+                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Gachukia Wanyoike</h4>
@@ -175,7 +175,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.5s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="image/team-d.jpg">
+                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Bernard Ngunzi</h4>
@@ -187,7 +187,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.6s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="image/team-d.jpg">
+                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Frederick Wandera</h4>

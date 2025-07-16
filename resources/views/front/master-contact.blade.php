@@ -29,19 +29,7 @@
 		<!-- Navbar -->
 		@include('front.main-nav')
 		<!-- #end Navbar -->
-		<!-- Banner -->
-		<div class="banner banner-static">
-			<div class="container">
-				<div class="content row">
-					
-					<div class="imagebg">
-						<img src="{{url('/')}}/uploads/services/What-is-Labour-Welfare-Fund-and-How-It-Benefits.webp" alt="">
-					</div>
-
-				</div>
-			</div>
-		</div>
-		<!-- End Banner -->
+	
 	</header>
 	<!-- End Header -->
 

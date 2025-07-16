@@ -1,8 +1,14 @@
-@extends('front.master-pages')
+@extends('front.master-contact')
 
 @section('content')
 
-<!-- Content -->
+	<!-- Map -->
+	<div class="map-holder map-contact">
+		<div id="gmap"></div>
+	</div>
+	<!-- End map -->
+
+    <!-- Content -->
 	<div class="section section-contents section-contact section-pad">
 		<div class="container">
 			<div class="content row">
@@ -67,11 +73,23 @@
 	</div>
 	<!-- End Content -->
 
-	<!-- Map -->
-	<div class="map-holder map-contact">
-		<div id="gmap"></div>
+	<!-- Call Action -->
+	<div class="call-action has-bg" style="background-image: url('{{asset('/uploads/services/What-is-Labour-Welfare-Fund-and-How-It-Benefits.webp')}}');">
+		<div class="cta-block">
+			<div class="container">
+				<div class="content row wow fadeInUp" data-wow-duration="1.2s" data-wow-delay="0.5s">
+
+					<div class="cta-sameline">
+						<h2 class="wow fadeInUp" data-wow-duration="1.2s" data-wow-delay="0.5s">DEPENDABLE SUPPORT YOU CAN COUNT ON</h2>
+						<p class="lead">We’re committed to delivering trusted, timely service—tailored to your needs, every step of the way.</p>
+						<a class="btn" href="{{url('/')}}/contact-us">Contact Us</a>
+					</div>
+
+				</div>
+			</div>
+		</div>
 	</div>
-	<!-- End map -->
+	<!-- End Section -->
 
 
 @endsection
