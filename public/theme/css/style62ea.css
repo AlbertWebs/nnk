@@ -9128,6 +9128,9 @@ h3.heading-lead+.lead {
 	height:100%;
 	object-fit: cover;
 }
+.team-info{
+	text-align: center;
+}
 
 @media only screen and (max-width: 767px) {
     .vertical-center {
