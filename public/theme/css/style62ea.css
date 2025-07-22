@@ -9119,6 +9119,15 @@ h3.heading-lead+.lead {
 	object-fit: contain;
 } 
 
+.team-photo{
+	width:270px;
+	height:360px;
+}
+.team-photo img{
+	width:100%;
+	height:100%;
+	object-fit: cover;
+}
 
 @media only screen and (max-width: 767px) {
     .vertical-center {
