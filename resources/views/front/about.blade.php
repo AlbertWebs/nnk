@@ -187,7 +187,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.6s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
+                                <img alt="" src="{{asset('uploads/team/Fred-Wandera.jpg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Frederick Wandera</h4>
