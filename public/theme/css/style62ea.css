@@ -9121,11 +9121,12 @@ h3.heading-lead+.lead {
 
 .team-photo{
 	width:270px;
-	height:360px;
+	height:350px !important;
+	/* border:2px solid #0000ff; */
 }
 .team-photo img{
 	width:100%;
-	height:100%;
+	height:350px !important;
 	object-fit: cover;
 }
 .team-info{
