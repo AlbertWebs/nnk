@@ -163,7 +163,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.4s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
+                                <img alt="" src="{{asset('uploads/team/Gachukia-Wanyoike.jpg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Gachukia Wanyoike</h4>
@@ -211,10 +211,23 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.6s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="{{asset('uploads/team/Jane Gatheru.jpeg')}}">
+                                <img alt="" src="{{asset('uploads/team/Jane-Gatheru.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Jane Gatheru</h4>
+                                <p class="sub-title">Member</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.6s">
+                        <div class="team-member">
+                            <div class="team-photo">
+                                <img alt="" src="{{asset('uploads/team/Isaac-Kiche.jpg')}}">
+                            </div>
+                            <div class="team-info">
+                                <h4 class="name">Isaac Kiche</h4>
                                 <p class="sub-title">Member</p>
                             </div>
                         </div>
