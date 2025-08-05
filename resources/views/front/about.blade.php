@@ -127,7 +127,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 even wow fadeInUp" data-wow-delay="0.1s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
+                                <img alt="" src="{{asset('uploads/team/Charles-Njagi.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Charles Njagi</h4>
@@ -233,6 +233,19 @@
                         </div>
                     </div>
 
+                    <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.6s">
+                        <div class="team-member">
+                            <div class="team-photo">
+                                <img alt="" src="{{asset('uploads/team/Evance-Odhiambo-Passport.jpg')}}">
+                            </div>
+                            <div class="team-info">
+                                <h4 class="name">Evance Odhiambo</h4>
+                                <p class="sub-title">Member</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    
 
                     
                 </div><!-- TeamRow #end -->
