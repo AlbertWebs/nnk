@@ -139,7 +139,7 @@
                     <div class="col-md-3 col-sm-6 col-xs-6 odd wow fadeInUp" data-wow-delay="0.2s">
                         <div class="team-member">
                             <div class="team-photo">
-                                <img alt="" src="{{asset('theme/image/team.jpeg')}}">
+                                <img alt="" src="{{asset('uploads/team/Rose-Munuthi.jpeg')}}">
                             </div>
                             <div class="team-info">
                                 <h4 class="name">Rose Munuthi</h4>
@@ -245,6 +245,7 @@
                         </div>
                     </div>
 
+                    
                     
 
                     
