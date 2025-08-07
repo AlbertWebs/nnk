@@ -24,7 +24,7 @@
                         </p>
 						<p><a download href="{{url('/')}}/uploads/documents/NNK-MEMBERSHIP-APPLICATI-ON-FORM.pdf"><em class="fa fa-file-pdf-o"></em> Membership Application Form</a></p>
 						<p><a download href="{{url('/')}}/uploads/documents/NNK-LOAN-APPLICATIONS-AND-LOAN-AGREEMENT-FORM.pdf"><em class="fa fa-file-pdf-o"></em> Loan Application Form</a></p>
-						<p><a download href="{{url('/')}}/uploads/documents/NNK-SACCO-WELFARE-SCHEME-POLICY.pdf"><em class="fa fa-file-pdf-o"></em> Nnk Sacco Welfare Scheme Policy</a></p>
+						{{-- <p><a download href="{{url('/')}}/uploads/documents/NNK-SACCO-WELFARE-SCHEME-POLICY.pdf"><em class="fa fa-file-pdf-o"></em> Nnk Sacco Welfare Scheme Policy</a></p> --}}
 						
 						<hr>
 						<h3>Useful links</h3>
