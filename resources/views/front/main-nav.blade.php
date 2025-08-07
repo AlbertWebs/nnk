@@ -49,7 +49,7 @@
 						</li>
 						<li><a href="{{url('contact-us')}}">Contact Us</a></li>
 						
-						<li class="quote-btn"><a class="btn" href="{{url('/')}}/join-us">Join Us</a></li>
+						<li class="quote-btn"><a class="btn" href="{{url('/')}}/download#join-us">Join Us</a></li>
 					</ul>
 				</nav>        
 				<!-- #end MainNav -->

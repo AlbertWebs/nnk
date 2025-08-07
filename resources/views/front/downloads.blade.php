@@ -17,7 +17,7 @@
 						
 						<hr>
 						<h3>Downloads</h3>
-						<p>
+						<p id="join">
 
                             Please ensure all forms are filled out accurately (where applicable) and submitted through the appropriate channels for timely processing. We encourage you to read the documents carefully before proceeding.
 
