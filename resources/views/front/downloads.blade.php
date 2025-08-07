@@ -17,7 +17,7 @@
 						
 						<hr>
 						<h3>Downloads</h3>
-						<p id="join">
+						<p>
 
                             Please ensure all forms are filled out accurately (where applicable) and submitted through the appropriate channels for timely processing. We encourage you to read the documents carefully before proceeding.
 
@@ -27,7 +27,7 @@
 						{{-- <p><a download href="{{url('/')}}/uploads/documents/NNK-SACCO-WELFARE-SCHEME-POLICY.pdf"><em class="fa fa-file-pdf-o"></em> Nnk Sacco Welfare Scheme Policy</a></p> --}}
 						
 						<hr>
-						<h3>Useful links</h3>
+						<h3 id="join">Useful links</h3>
 						<p>
 
                           This section provides quick access to important external and internal resources relevant to NNK Staff Sacco members. Whether you're looking to access partner institutions, regulatory bodies, online services, or support portals, our curated list of useful links is here to help you stay informed and connected.
