@@ -34,9 +34,9 @@
 
                         </p>
 						<ul>
-							<li>Members Portal: <a href="#">portal.nnkstaffsacco.com</a></li>
-							<li>Mail Login: <a href="#">www.nnkstaffsacco.com/webmail</a></li>
-							<li>Contact Us: <a href="#"> www.nnkstaffsacco.com/contact-us</a></li>
+							<li>Members Portal: <a href="https://www.nnkstaffsacco.com/webmail">portal.nnkstaffsacco.com</a></li>
+							<li>Mail Login: <a href="https://www.nnkstaffsacco.com/webmail">www.nnkstaffsacco.com/webmail</a></li>
+							<li>Contact Us: <a href="https://www.nnkstaffsacco.com/contact-us"> www.nnkstaffsacco.com/contact-us</a></li>
 						</ul>
 						<h5>Looking for something?</h5>
 						<p>Contact us at <a href="+254 720 496 849"> 0720 496 849</a> or get in touch with us online.</p>
