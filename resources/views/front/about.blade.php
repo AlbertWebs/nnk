@@ -29,7 +29,7 @@
             <div class="content row">
 
                 <h2 class="heading-section wow fadeInDown" data-wow-delay="0.1s">Why Choose Us</h2>
-                
+
                 <div class="clear"></div>
                 <div class="feature-intro space-top">
 
@@ -103,7 +103,7 @@
 
                 </div>
 
-            </div>			
+            </div>
         </div>
     </div>
 
@@ -214,7 +214,7 @@
                                 <img alt="" src="{{asset('uploads/team/Jane-Gatheru.jpeg')}}">
                             </div>
                             <div class="team-info">
-                                <h4 class="name">Jane Gatheru</h4>
+                                <h4 class="name">Jane Gacheru </h4>
                                 <p class="sub-title">Member</p>
                             </div>
                         </div>
@@ -245,10 +245,10 @@
                         </div>
                     </div>
 
-                    
-                    
 
-                    
+
+
+
                 </div><!-- TeamRow #end -->
 
             </div>
