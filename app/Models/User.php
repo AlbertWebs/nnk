@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -61,4 +62,12 @@ class User extends Authenticatable
         return $this->role === 'member';
     }
 
+    /**
+     * The groups that the user belongs to.
+     */
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'group_members')
+                    ->withTimestamps();
+    }
 }

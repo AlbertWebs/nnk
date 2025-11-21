@@ -23,8 +23,25 @@ Route::post('/membership/apply', [HomeController::class, 'store'])->name('member
 Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', fn () => view('admin.dashboard'));
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // Users CRUD
+    Route::resource('users', App\Http\Controllers\UserController::class);
+    
+    // Services CRUD
+    Route::resource('services', App\Http\Controllers\ServiceController::class);
+    
+    // Gallery CRUD
+    Route::resource('gallery', App\Http\Controllers\GalleryController::class);
+    
+    // Gallery upload for dropzone (keep for backward compatibility)
+    Route::post('/gallery/upload', [App\Http\Controllers\GalleryController::class, 'store'])->name('gallery.upload');
+    
+    // Mailing List
+    Route::get('/mailing-list', fn () => view('admin.mailing-list'))->name('mailing-list');
+    Route::get('/mailing-list/send-email', fn () => view('admin.send-email'))->name('mailing-list.send-email');
+    Route::get('/mailing-list/mapping', fn () => view('admin.member-groups-mapping'))->name('mailing-list.mapping');
 });
 
 Route::middleware(['auth', 'role:officer'])->group(function () {

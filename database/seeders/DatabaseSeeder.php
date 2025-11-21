@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         // $this->call(UserSeeder::class);
-        $this->call([ServiceSeeder::class]);
+        $this->call([
+            ServiceSeeder::class,
+            // EmailListSeeder::class, // Uncomment to seed email list
+        ]);
     }
 }
