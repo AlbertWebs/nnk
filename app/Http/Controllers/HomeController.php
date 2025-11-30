@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 //service
 use App\Models\Service;
+use App\Models\Gallery;
 
 class HomeController extends Controller
 {
@@ -146,6 +147,19 @@ class HomeController extends Controller
             'url' => url('/downloads'),
         ];
         return view('front.downloads', compact('meta'));
+    }
+
+    public function gallery(){
+        $galleries = Gallery::latest()->paginate(24);
+        $meta = [
+            'title' => 'Gallery - NNK Sacco Limited',
+            'description' => 'Browse through our gallery of images showcasing NNK Sacco Limited events, activities, and achievements.',
+            'keywords' => 'NNK Sacco gallery, NNK Sacco photos, Sacco images, NNK Sacco events',
+            'author' => 'NNK Sacco Limited',
+            'image' => asset('images/gallery-og-image.jpg'),
+            'url' => url('/gallery'),
+        ];
+        return view('front.gallery', compact('galleries', 'meta'));
     }
    public function store(Request $request)
     {

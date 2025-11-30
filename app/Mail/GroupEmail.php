@@ -7,24 +7,28 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 
 class GroupEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public string $subject;
+    private string $emailSubject;
     public string $body;
     public string $recipientName;
+    private array $emailAttachments;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(string $subject, string $body, string $recipientName = '')
+    public function __construct(string $subject, string $body, string $recipientName = '', array $attachments = [])
     {
-        $this->subject = $subject;
+        $this->emailSubject = $subject;
         $this->body = $body;
         $this->recipientName = $recipientName;
+        $this->emailAttachments = $attachments;
     }
 
     /**
@@ -33,7 +37,7 @@ class GroupEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->subject,
+            subject: $this->emailSubject,
         );
     }
 
@@ -58,6 +62,16 @@ class GroupEmail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $attachmentObjects = [];
+        
+        foreach ($this->emailAttachments as $attachment) {
+            if (Storage::disk('public')->exists($attachment['path'])) {
+                $attachmentObjects[] = Attachment::fromStorageDisk('public', $attachment['path'])
+                    ->as($attachment['name'])
+                    ->withMime($attachment['mime'] ?? 'application/octet-stream');
+            }
+        }
+        
+        return $attachmentObjects;
     }
 }

@@ -19,6 +19,15 @@ class GalleryController extends Controller
     }
 
     /**
+     * Display gallery images for resources section with zoom functionality
+     */
+    public function resources()
+    {
+        $galleries = Gallery::with('user')->latest()->paginate(24);
+        return view('admin.resources.gallery', compact('galleries'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()

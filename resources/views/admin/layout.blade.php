@@ -76,7 +76,30 @@
                             Member Mapping
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('admin.mailing-list.history') }}" class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-700 {{ request()->routeIs('admin.mailing-list.history*') ? 'bg-gray-700' : '' }}">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Email History
+                        </a>
+                    </li>
                 </ul>
+                
+                <!-- Resources Section -->
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <h3 class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Resources</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{{ route('admin.resources.gallery') }}" class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-700 {{ request()->routeIs('admin.resources.gallery') ? 'bg-gray-700' : '' }}">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Gallery
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </nav>
             
             <div class="p-4 border-t border-gray-700">

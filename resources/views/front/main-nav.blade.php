@@ -44,6 +44,7 @@
 							<a href="#">Resources</a>
 							<ul class="dropdown-menu">
 								<li><a href="{{url('/')}}/downloads">Download Forms</a></li>
+                                <li><a href="{{url('/')}}/gallery">Gallery</a></li>
                                 <li><a href="{{url('/')}}/membership">Membership</a></li>
 							</ul>
 						</li>

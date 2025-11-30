@@ -167,11 +167,11 @@
                 <td align="center" style="padding: 20px 0;">
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%;">
                         <!-- Header -->
-                        <tr>
+                        <!-- <tr>
                             <td class="email-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center;">
                                 <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">{{ $subject ?? 'Email' }}</h1>
                             </td>
-                        </tr>
+                        </tr> -->
                         
                         <!-- Content -->
                         <tr>
