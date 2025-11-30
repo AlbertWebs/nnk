@@ -50,7 +50,8 @@
                 </svg>
                 <p class="text-lg font-medium text-gray-700 mb-2">Drag & drop images here</p>
                 <p class="text-sm text-gray-500">or click to browse files</p>
-                <p class="text-xs text-gray-400 mt-2">(Max file size: 10MB - JPEG, PNG, JPG, GIF, WEBP)</p>
+                <p class="text-xs text-gray-400 mt-2">(Max file size: 10MB per file - JPEG, PNG, JPG, GIF, WEBP)</p>
+                <p class="text-xs text-blue-600 mt-1 font-medium">You can select and upload multiple images at once!</p>
             </div>
         </div>
     </div>
@@ -125,6 +126,27 @@
             }
             
             console.log('Initializing dropzone...');
+            
+            // Create progress container
+            const progressContainer = document.createElement('div');
+            progressContainer.id = 'upload-progress-container';
+            progressContainer.className = 'mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden';
+            progressContainer.innerHTML = `
+                <div class="mb-2 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">Upload Progress</span>
+                    <span id="upload-progress-text" class="text-sm text-gray-600">0 / 0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                    <div id="upload-progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <div id="upload-status" class="text-xs text-gray-500"></div>
+            `;
+            document.querySelector('.dropzone').parentElement.appendChild(progressContainer);
+            
+            let uploadedCount = 0;
+            let failedCount = 0;
+            let totalFiles = 0;
+            
             const dropzone = new Dropzone("#gallery-dropzone", {
             url: "{{ route('admin.gallery.upload') }}",
             paramName: "image",
@@ -132,14 +154,16 @@
             acceptedFiles: "image/*",
             addRemoveLinks: false,
             method: "post",
-            autoProcessQueue: true,
+            autoProcessQueue: false, // Changed to false to allow batch processing
             clickable: true,
             previewTemplate: '<div style="display:none"></div>',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
             },
-            parallelUploads: 1,
-            uploadMultiple: false,
+            parallelUploads: 5, // Upload 5 files at a time
+            uploadMultiple: false, // Keep false, we'll process queue manually
+            maxFiles: null, // Allow unlimited files
+            timeout: 300000, // 5 minutes timeout per file
             sending: function(file, xhr, formData) {
                 console.log('Sending file:', file.name);
                 // Ensure CSRF token is sent
@@ -147,36 +171,100 @@
             },
             init: function() {
                 console.log('Dropzone initialized on gallery page');
+                const dzInstance = this;
+                
+                // Show progress container when files are added
+                this.on("addedfiles", function(files) {
+                    totalFiles = files.length;
+                    uploadedCount = 0;
+                    failedCount = 0;
+                    progressContainer.classList.remove('hidden');
+                    document.getElementById('upload-progress-text').textContent = `0 / ${totalFiles}`;
+                    document.getElementById('upload-progress-bar').style.width = '0%';
+                    document.getElementById('upload-status').textContent = 'Ready to upload...';
+                    
+                    // Auto-start upload
+                    if (dzInstance.getQueuedFiles().length > 0) {
+                        dzInstance.processQueue();
+                    }
+                });
+                
                 this.on("addedfile", function(file) {
                     console.log('File added:', file.name);
                 });
-            },
-            success: function(file, response) {
-                console.log('Upload success:', response);
-                if (response.success) {
-                    // Reload the page to show the new image
-                    window.location.reload();
-                }
-            },
-            error: function(file, response) {
-                console.error('Upload error:', response);
-                let errorMessage = 'Error uploading image';
-                if (response) {
-                    if (typeof response === 'string') {
-                        try {
-                            const parsed = JSON.parse(response);
-                            errorMessage = parsed.error || parsed.message || errorMessage;
-                        } catch (e) {
-                            errorMessage = response;
+                
+                this.on("success", function(file, response) {
+                    console.log('Upload success:', response);
+                    uploadedCount++;
+                    updateProgress();
+                    
+                    if (response.success) {
+                        // Remove file from queue
+                        this.removeFile(file);
+                    }
+                    
+                    // Process next file in queue
+                    if (this.getQueuedFiles().length > 0) {
+                        this.processQueue();
+                    } else if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length === 0) {
+                        // All files processed
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                });
+                
+                this.on("error", function(file, response) {
+                    console.error('Upload error:', response);
+                    failedCount++;
+                    updateProgress();
+                    
+                    let errorMessage = 'Error uploading image';
+                    if (response) {
+                        if (typeof response === 'string') {
+                            try {
+                                const parsed = JSON.parse(response);
+                                errorMessage = parsed.error || parsed.message || errorMessage;
+                            } catch (e) {
+                                errorMessage = response;
+                            }
+                        } else if (response.error) {
+                            errorMessage = response.error;
+                        } else if (response.message) {
+                            errorMessage = response.message;
                         }
-                    } else if (response.error) {
-                        errorMessage = response.error;
-                    } else if (response.message) {
-                        errorMessage = response.message;
+                    }
+                    
+                    document.getElementById('upload-status').innerHTML += `<div class="text-red-600 mt-1">✗ ${file.name}: ${errorMessage}</div>`;
+                    this.removeFile(file);
+                    
+                    // Continue processing queue
+                    if (this.getQueuedFiles().length > 0) {
+                        this.processQueue();
+                    } else if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length === 0) {
+                        // All files processed
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
+                });
+                
+                this.on("uploadprogress", function(file, progress, bytesSent) {
+                    updateProgress();
+                });
+                
+                function updateProgress() {
+                    const processed = uploadedCount + failedCount;
+                    const percentage = totalFiles > 0 ? Math.round((processed / totalFiles) * 100) : 0;
+                    document.getElementById('upload-progress-text').textContent = `${processed} / ${totalFiles}`;
+                    document.getElementById('upload-progress-bar').style.width = percentage + '%';
+                    
+                    if (processed < totalFiles) {
+                        document.getElementById('upload-status').textContent = `Uploading... ${uploadedCount} successful, ${failedCount} failed`;
+                    } else {
+                        document.getElementById('upload-status').textContent = `Complete! ${uploadedCount} successful, ${failedCount} failed. Refreshing page...`;
                     }
                 }
-                alert(errorMessage);
-                this.removeFile(file);
             }
         });
         
