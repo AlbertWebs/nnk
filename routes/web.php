@@ -22,7 +22,13 @@ Route::post('/membership/apply', [HomeController::class, 'store'])->name('member
 
 
 
-Auth::routes();
+Auth::routes(['register' => false]);
+
+// Explicitly block register route if someone tries to access it directly
+Route::match(['get', 'post'], '/register', function () {
+    abort(404, 'Registration is disabled.');
+})->name('register');
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {

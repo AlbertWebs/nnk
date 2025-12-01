@@ -15,9 +15,22 @@
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @if(request()->routeIs('login'))
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        #app {
+            min-height: 100vh;
+        }
+    </style>
+    @endif
 </head>
 <body>
     <div id="app">
+        @if (!request()->routeIs('login'))
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
@@ -40,12 +53,6 @@
                             @if (Route::has('login'))
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
                                 </li>
                             @endif
                         @else
@@ -71,8 +78,9 @@
                 </div>
             </div>
         </nav>
+        @endif
 
-        <main class="py-4">
+        <main class="@if(request()->routeIs('login')) p-0 @else py-4 @endif">
             @yield('content')
         </main>
     </div>
