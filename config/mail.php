@@ -70,14 +70,8 @@ return [
         ],
 
         'mailersend' => [
-            'transport' => 'smtp',
-            'host' => env('MAILERSEND_HOST', 'smtp.mailersend.net'),
-            'port' => env('MAILERSEND_PORT', 587),
-            'username' => env('MAILERSEND_USERNAME'),
-            'password' => env('MAILERSEND_PASSWORD'),
-            'encryption' => env('MAILERSEND_ENCRYPTION', 'tls'),
-            'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'transport' => 'mailersend',
+            'api_key' => env('MAILERSEND_API_KEY'),
         ],
 
         'sendmail' => [
