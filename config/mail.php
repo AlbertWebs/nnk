@@ -71,7 +71,7 @@ return [
 
         'mailersend' => [
             'transport' => 'smtp',
-            'host' => env('MAILERSEND_HOST', 'smtp.mailersend.com'),
+            'host' => env('MAILERSEND_HOST', 'smtp.mailersend.net'),
             'port' => env('MAILERSEND_PORT', 587),
             'username' => env('MAILERSEND_USERNAME'),
             'password' => env('MAILERSEND_PASSWORD'),
