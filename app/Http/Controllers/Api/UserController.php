@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -145,10 +146,13 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
             $connection = $user->getConnectionName();
+            $table = $user->getTable();
+            $keyName = $user->getKeyName();
 
             $maxAttempts = 3;
             $attempt = 0;
             $lastException = null;
+            $is1615 = false;
 
             while ($attempt < $maxAttempts) {
                 try {
@@ -169,6 +173,39 @@ class UserController extends Controller
             }
 
             if ($attempt >= $maxAttempts && $lastException) {
+                if ($is1615) {
+                    // Force a new PDO connection with emulate prepares for this one operation.
+                    // This avoids relying on production config cache / env for the PDO attribute.
+                    $tempConnectionName = $connection . '_emulate_prepares_tmp';
+                    Log::warning('API user delete fallback (emulate prepares) triggered', [
+                        'user_id' => $id,
+                        'connection' => $connection,
+                        'temp_connection' => $tempConnectionName,
+                    ]);
+                    $baseConfig = config("database.connections.$connection");
+
+                    $baseConfig['options'] = array_merge(
+                        $baseConfig['options'] ?? [],
+                        [
+                            PDO::ATTR_EMULATE_PREPARES => true,
+                            PDO::ATTR_PERSISTENT => false,
+                        ]
+                    );
+
+                    config(["database.connections.$tempConnectionName" => $baseConfig]);
+                    DB::purge($tempConnectionName);
+
+                    DB::connection($tempConnectionName)
+                        ->table($table)
+                        ->where($keyName, $id)
+                        ->delete();
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'User deleted successfully'
+                    ]);
+                }
+
                 throw $lastException;
             }
 

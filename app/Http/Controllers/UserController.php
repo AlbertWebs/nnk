@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -102,10 +103,13 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $connection = $user->getConnectionName();
+        $table = $user->getTable();
+        $keyName = $user->getKeyName();
 
         $maxAttempts = 3;
         $attempt = 0;
         $lastException = null;
+        $is1615 = false;
 
         while ($attempt < $maxAttempts) {
             try {
@@ -126,6 +130,36 @@ class UserController extends Controller
         }
 
         if ($attempt >= $maxAttempts && $lastException) {
+            if ($is1615) {
+                // Force a new PDO connection with emulate prepares for this one operation.
+                // This avoids relying on production config cache / env for the PDO attribute.
+                $tempConnectionName = $connection . '_emulate_prepares_tmp';
+                Log::warning('User delete fallback (emulate prepares) triggered', [
+                    'user_id' => $id,
+                    'connection' => $connection,
+                    'temp_connection' => $tempConnectionName,
+                ]);
+                $baseConfig = config("database.connections.$connection");
+
+                $baseConfig['options'] = array_merge(
+                    $baseConfig['options'] ?? [],
+                    [
+                        PDO::ATTR_EMULATE_PREPARES => true,
+                        PDO::ATTR_PERSISTENT => false,
+                    ]
+                );
+
+                config(["database.connections.$tempConnectionName" => $baseConfig]);
+                DB::purge($tempConnectionName);
+
+                DB::connection($tempConnectionName)
+                    ->table($table)
+                    ->where($keyName, $id)
+                    ->delete();
+
+                return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+            }
+
             throw $lastException;
         }
 
