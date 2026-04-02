@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -99,7 +101,20 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $connection = $user->getConnectionName();
+
+        try {
+            $user->delete();
+        } catch (QueryException $e) {
+            // Workaround for MySQL/MariaDB occasional "Prepared statement needs to be re-prepared" (SQLSTATE HY000 / 1615).
+            if (str_contains($e->getMessage(), 'SQLSTATE[HY000]') && str_contains($e->getMessage(), '1615')) {
+                DB::purge($connection); // Force a fresh connection + statement prep.
+                $user = User::findOrFail($id);
+                $user->delete();
+            } else {
+                throw $e;
+            }
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
