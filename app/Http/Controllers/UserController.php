@@ -152,10 +152,18 @@ class UserController extends Controller
                 config(["database.connections.$tempConnectionName" => $baseConfig]);
                 DB::purge($tempConnectionName);
 
-                DB::connection($tempConnectionName)
-                    ->table($table)
-                    ->where($keyName, $id)
-                    ->delete();
+                $idInt = (int) $id; // Route params are strings; cast to avoid any injection risk.
+                $escapedTable = str_replace('`', '``', $table);
+                $escapedKey = str_replace('`', '``', $keyName);
+                $deleteSql = sprintf(
+                    'delete from `%s` where `%s` = %d',
+                    $escapedTable,
+                    $escapedKey,
+                    $idInt
+                );
+
+                // Use unprepared() to bypass prepared-statement reuse issues (SQLSTATE HY000 / 1615).
+                DB::connection($tempConnectionName)->unprepared($deleteSql);
 
                 return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
             }
