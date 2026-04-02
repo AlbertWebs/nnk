@@ -62,6 +62,8 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
                 PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
+                // Avoid server-side prepared statement cache issues on some MySQL setups.
+                PDO::ATTR_PERSISTENT => false,
             ]) : [],
         ],
 
@@ -83,6 +85,8 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
                 PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
+                // Avoid server-side prepared statement cache issues on some MySQL setups.
+                PDO::ATTR_PERSISTENT => false,
             ]) : [],
         ],
 
