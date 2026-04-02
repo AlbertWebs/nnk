@@ -103,17 +103,30 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $connection = $user->getConnectionName();
 
-        try {
-            $user->delete();
-        } catch (QueryException $e) {
-            // Workaround for MySQL/MariaDB occasional "Prepared statement needs to be re-prepared" (SQLSTATE HY000 / 1615).
-            if (str_contains($e->getMessage(), 'SQLSTATE[HY000]') && str_contains($e->getMessage(), '1615')) {
-                DB::purge($connection); // Force a fresh connection + statement prep.
+        $maxAttempts = 3;
+        $attempt = 0;
+        $lastException = null;
+
+        while ($attempt < $maxAttempts) {
+            try {
                 $user = User::findOrFail($id);
                 $user->delete();
-            } else {
-                throw $e;
+                break;
+            } catch (QueryException $e) {
+                // Workaround for MySQL/MariaDB occasional "Prepared statement needs to be re-prepared" (SQLSTATE HY000 / 1615).
+                $is1615 = str_contains($e->getMessage(), 'SQLSTATE[HY000]') && str_contains($e->getMessage(), '1615');
+                if (!$is1615) {
+                    throw $e;
+                }
+
+                $lastException = $e;
+                DB::purge($connection); // Force a fresh connection + statement prep.
+                $attempt++;
             }
+        }
+
+        if ($attempt >= $maxAttempts && $lastException) {
+            throw $lastException;
         }
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');

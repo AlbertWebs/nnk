@@ -64,7 +64,7 @@ return [
                 PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
                 // Avoid server-side prepared statement cache issues on some MySQL setups.
                 PDO::ATTR_PERSISTENT => false,
-            ]) : [],
+            ], fn ($value) => !is_null($value) && $value !== '') : [],
         ],
 
         'mariadb' => [
@@ -87,7 +87,7 @@ return [
                 PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
                 // Avoid server-side prepared statement cache issues on some MySQL setups.
                 PDO::ATTR_PERSISTENT => false,
-            ]) : [],
+            ], fn ($value) => !is_null($value) && $value !== '') : [],
         ],
 
         'pgsql' => [
