@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Str;
 
+$emulatePrepares = filter_var(env('DB_EMULATE_PREPARES', true), FILTER_VALIDATE_BOOLEAN);
+
 return [
 
     /*
@@ -59,6 +61,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
             ]) : [],
         ],
 
@@ -79,6 +82,7 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
             ]) : [],
         ],
 
