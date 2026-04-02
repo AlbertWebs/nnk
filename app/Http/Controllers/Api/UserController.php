@@ -187,8 +187,8 @@ class UserController extends Controller
                     $baseConfig['options'] = array_merge(
                         $baseConfig['options'] ?? [],
                         [
-                            PDO::ATTR_EMULATE_PREPARES => true,
-                            PDO::ATTR_PERSISTENT => false,
+                            \PDO::ATTR_EMULATE_PREPARES => true,
+                            \PDO::ATTR_PERSISTENT => false,
                         ]
                     );
 
