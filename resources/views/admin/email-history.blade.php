@@ -31,11 +31,11 @@
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Email Send History</h2>
                 @if($emailSends->count() > 0)
-                    <form action="{{ route('admin.mailing-list.history.purge-all') }}" method="POST" onsubmit="return confirm('Are you sure you want to purge all sent email history? This cannot be undone.');">
+                    <form action="{{ route('admin.mailing-list.history.purge-all') }}" method="POST" onsubmit="return confirm('Are you sure you want to purge all email history, including sending records? This cannot be undone.');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
-                            Purge All Sent Emails
+                            Purge All Email History
                         </button>
                     </form>
                 @endif
