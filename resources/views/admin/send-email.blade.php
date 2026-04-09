@@ -68,7 +68,7 @@
                     </svg>
                     <div>
                         <p class="text-sm font-medium text-yellow-800">Important</p>
-                        <p class="text-sm text-yellow-700 mt-1">This email will be sent to all members of the selected group. Please review your message before sending.</p>
+                        <p class="text-sm text-yellow-700 mt-1">Each send processes up to 10 unsent members at a time and automatically skips members who already received the same subject and message.</p>
                     </div>
                 </div>
             </div>
@@ -645,7 +645,7 @@ function showSuccessMessage(data) {
                 </svg>
                 <div class="flex-1">
                     <p class="text-sm font-medium text-green-800">
-                        Email sent successfully to ${data.sent} member(s)${data.skipped > 0 ? ` (${data.skipped} already received, skipped)` : ''}${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
+                        Email sent successfully to ${data.sent} member(s)${data.skipped > 0 ? ` (${data.skipped} already received, skipped)` : ''}${data.failed > 0 ? ` (${data.failed} failed)` : ''}${(data.remaining || 0) > 0 ? ` (${data.remaining} remaining for next batch)` : ''}!
                     </p>
                 </div>
             </div>

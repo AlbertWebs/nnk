@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class EmailController extends Controller
 {
+    private const SENDABLE_BATCH_SIZE = 10;
     private const MAILERSEND_MAX_REQUESTS_PER_MINUTE = 9;
     private const MAILERSEND_RATE_LIMIT_WAIT_SECONDS = 65;
 
@@ -61,6 +62,8 @@ class EmailController extends Controller
                 ->values();
 
             $skippedCount = $allUsers->count() - $targetUsers->count();
+            $remainingBeforeBatch = $targetUsers->count();
+            $targetUsers = $targetUsers->take(self::SENDABLE_BATCH_SIZE)->values();
             
             // Handle file attachments
             $attachments = [];
@@ -85,6 +88,8 @@ class EmailController extends Controller
                 'subject' => $validated['subject'],
                 'recipient_count' => $targetUsers->count(),
                 'skipped_count' => $skippedCount,
+                'remaining_before_batch' => $remainingBeforeBatch,
+                'batch_size' => self::SENDABLE_BATCH_SIZE,
                 'user_id' => auth()->id(),
                 'user_email' => auth()->user()->email ?? null,
             ]);
@@ -105,6 +110,7 @@ class EmailController extends Controller
                         'sent' => 0,
                         'failed' => 0,
                         'skipped' => $skippedCount,
+                        'remaining' => 0,
                         'total' => $allUsers->count(),
                         'errors' => []
                     ]
@@ -242,6 +248,7 @@ class EmailController extends Controller
                         'sent' => $sentCount,
                         'failed' => $failedCount,
                         'skipped' => $skippedCount,
+                        'remaining' => max($remainingBeforeBatch - $sentCount - $failedCount, 0),
                         'total' => $targetUsers->count(),
                         'errors' => $errors
                     ]
@@ -256,6 +263,7 @@ class EmailController extends Controller
                     'sent' => $sentCount,
                     'failed' => $failedCount,
                     'skipped' => $skippedCount,
+                    'remaining' => max($remainingBeforeBatch - $sentCount - $failedCount, 0),
                     'total' => $targetUsers->count(),
                     'errors' => $errors
                 ]
