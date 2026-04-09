@@ -36,10 +36,11 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Batch Sending</label>
                 <select id="email-batch-option" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="all">Send to all members</option>
-                    <option value="first_half">Batch 1 (first half)</option>
-                    <option value="second_half">Batch 2 (second half)</option>
+                    <option value="first_third">Batch 1 (first third)</option>
+                    <option value="second_third">Batch 2 (second third)</option>
+                    <option value="third_third">Batch 3 (final third)</option>
                 </select>
-                <p id="batch-info" class="mt-2 text-sm text-gray-500">Choose "Batch 1" today, then "Batch 2" tomorrow.</p>
+                <p id="batch-info" class="mt-2 text-sm text-gray-500">Choose Batch 1 today, Batch 2 tomorrow, then Batch 3 next day.</p>
             </div>
             
             <div class="mb-6">
@@ -328,16 +329,19 @@ function updateGroupInfo() {
     
     if (select.value && selectedOption.dataset.memberCount) {
         const memberCount = parseInt(selectedOption.dataset.memberCount, 10) || 0;
-        const halfPoint = Math.ceil(memberCount / 2);
+        const { firstSize, secondSize, thirdSize } = getThreeBatchSizes(memberCount);
         let targetCount = memberCount;
         let batchText = 'all members';
 
-        if (batchSelect.value === 'first_half') {
-            targetCount = halfPoint;
-            batchText = `Batch 1 (${halfPoint} member${halfPoint === 1 ? '' : 's'})`;
-        } else if (batchSelect.value === 'second_half') {
-            targetCount = memberCount - halfPoint;
-            batchText = `Batch 2 (${memberCount - halfPoint} member${memberCount - halfPoint === 1 ? '' : 's'})`;
+        if (batchSelect.value === 'first_third') {
+            targetCount = firstSize;
+            batchText = `Batch 1 (${firstSize} member${firstSize === 1 ? '' : 's'})`;
+        } else if (batchSelect.value === 'second_third') {
+            targetCount = secondSize;
+            batchText = `Batch 2 (${secondSize} member${secondSize === 1 ? '' : 's'})`;
+        } else if (batchSelect.value === 'third_third') {
+            targetCount = thirdSize;
+            batchText = `Batch 3 (${thirdSize} member${thirdSize === 1 ? '' : 's'})`;
         }
 
         infoDiv.textContent = `This email will be sent to ${targetCount} member(s) in ${batchText}.`;
@@ -347,11 +351,13 @@ function updateGroupInfo() {
     }
 
     if (batchSelect.value === 'all') {
-        batchInfoDiv.textContent = 'Choose "Batch 1" today, then "Batch 2" tomorrow.';
-    } else if (batchSelect.value === 'first_half') {
-        batchInfoDiv.textContent = 'Batch 1 selected: this sends the first half of members.';
+        batchInfoDiv.textContent = 'Choose Batch 1 today, Batch 2 tomorrow, then Batch 3 next day.';
+    } else if (batchSelect.value === 'first_third') {
+        batchInfoDiv.textContent = 'Batch 1 selected: this sends the first third of members.';
+    } else if (batchSelect.value === 'second_third') {
+        batchInfoDiv.textContent = 'Batch 2 selected: this sends the second third of members.';
     } else {
-        batchInfoDiv.textContent = 'Batch 2 selected: this sends the second half of members.';
+        batchInfoDiv.textContent = 'Batch 3 selected: this sends the final third of members.';
     }
 }
 
@@ -518,7 +524,7 @@ async function confirmSendEmail() {
                 document.getElementById('email-group-select').value = '';
                 document.getElementById('email-batch-option').value = 'all';
                 document.getElementById('group-info').textContent = '';
-                document.getElementById('batch-info').textContent = 'Choose "Batch 1" today, then "Batch 2" tomorrow.';
+                document.getElementById('batch-info').textContent = 'Choose Batch 1 today, Batch 2 tomorrow, then Batch 3 next day.';
                 
                 // Clear attachments
                 selectedFiles = [];
@@ -701,12 +707,30 @@ function getUsersForSelectedBatch(users) {
         return sortedUsers;
     }
 
-    const halfPoint = Math.ceil(sortedUsers.length / 2);
-    if (batchOption === 'first_half') {
-        return sortedUsers.slice(0, halfPoint);
+    const { firstSize, secondSize } = getThreeBatchSizes(sortedUsers.length);
+    const secondStart = firstSize;
+    const thirdStart = firstSize + secondSize;
+
+    if (batchOption === 'first_third') {
+        return sortedUsers.slice(0, firstSize);
     }
 
-    return sortedUsers.slice(halfPoint);
+    if (batchOption === 'second_third') {
+        return sortedUsers.slice(secondStart, thirdStart);
+    }
+
+    return sortedUsers.slice(thirdStart);
+}
+
+function getThreeBatchSizes(totalCount) {
+    const baseSize = Math.floor(totalCount / 3);
+    const remainder = totalCount % 3;
+
+    const firstSize = baseSize + (remainder > 0 ? 1 : 0);
+    const secondSize = baseSize + (remainder > 1 ? 1 : 0);
+    const thirdSize = baseSize;
+
+    return { firstSize, secondSize, thirdSize };
 }
 </script>
 @endpush

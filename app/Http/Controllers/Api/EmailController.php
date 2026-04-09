@@ -28,21 +28,29 @@ class EmailController extends Controller
             $validated = $request->validate([
                 'subject' => 'required|string|max:255',
                 'body' => 'required|string',
-                'batch_option' => 'nullable|string|in:all,first_half,second_half',
+                'batch_option' => 'nullable|string|in:all,first_third,second_third,third_third',
                 'attachments.*' => 'nullable|file|max:10240', // Max 10MB per file
             ]);
 
             $group = Group::with('users')->findOrFail($groupId);
             $batchOption = $validated['batch_option'] ?? 'all';
             $allUsers = $group->users->sortBy('id')->values();
-            $halfPoint = (int) ceil($allUsers->count() / 2);
+            $totalUsers = $allUsers->count();
+            $baseSize = intdiv($totalUsers, 3);
+            $remainder = $totalUsers % 3;
+            $firstSize = $baseSize + ($remainder > 0 ? 1 : 0);
+            $secondSize = $baseSize + ($remainder > 1 ? 1 : 0);
+            $thirdStart = $firstSize + $secondSize;
 
-            if ($batchOption === 'first_half') {
-                $targetUsers = $allUsers->slice(0, $halfPoint)->values();
+            if ($batchOption === 'first_third') {
+                $targetUsers = $allUsers->slice(0, $firstSize)->values();
                 $batchLabel = 'Batch 1';
-            } elseif ($batchOption === 'second_half') {
-                $targetUsers = $allUsers->slice($halfPoint)->values();
+            } elseif ($batchOption === 'second_third') {
+                $targetUsers = $allUsers->slice($firstSize, $secondSize)->values();
                 $batchLabel = 'Batch 2';
+            } elseif ($batchOption === 'third_third') {
+                $targetUsers = $allUsers->slice($thirdStart)->values();
+                $batchLabel = 'Batch 3';
             } else {
                 $targetUsers = $allUsers;
                 $batchLabel = 'All members';
