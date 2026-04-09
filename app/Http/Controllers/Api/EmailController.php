@@ -207,6 +207,25 @@ class EmailController extends Controller
                 'user_id' => auth()->id(),
             ]);
 
+            $allFailed = $sentCount === 0 && $failedCount > 0;
+
+            if ($allFailed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Email was not sent. {$failedCount} member(s) failed.",
+                    'error' => $errors[0]['error'] ?? 'Failed to send email',
+                    'data' => [
+                        'group' => $group->name,
+                        'batch_option' => $batchOption,
+                        'batch_label' => $batchLabel,
+                        'sent' => $sentCount,
+                        'failed' => $failedCount,
+                        'total' => $targetUsers->count(),
+                        'errors' => $errors
+                    ]
+                ], 422);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => "Email sent to {$sentCount} member(s)" . ($failedCount > 0 ? ", {$failedCount} failed" : ''),

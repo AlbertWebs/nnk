@@ -549,7 +549,9 @@ async function confirmSendEmail() {
             btnSuccess.classList.add('hidden');
             
             // Show validation or general errors
-            if (result.errors) {
+            if (result.data && result.data.errors && result.data.errors.length > 0) {
+                showErrors(result.data.errors, result.data);
+            } else if (result.errors) {
                 showValidationErrors(result.errors, result.message);
             } else {
                 showError(result.message || result.error || 'Failed to send email');
