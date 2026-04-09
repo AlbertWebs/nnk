@@ -645,7 +645,7 @@ function showSuccessMessage(data) {
                 </svg>
                 <div class="flex-1">
                     <p class="text-sm font-medium text-green-800">
-                        Email sent successfully to ${data.sent} member(s)${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
+                        Email sent successfully to ${data.sent} member(s)${data.skipped > 0 ? ` (${data.skipped} already received, skipped)` : ''}${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
                     </p>
                 </div>
             </div>

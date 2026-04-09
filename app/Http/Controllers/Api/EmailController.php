@@ -17,6 +17,9 @@ use Illuminate\Validation\ValidationException;
 
 class EmailController extends Controller
 {
+    private const MAILERSEND_MAX_REQUESTS_PER_MINUTE = 9;
+    private const MAILERSEND_RATE_LIMIT_WAIT_SECONDS = 65;
+
     /**
      * Send email to all members of a group
      */
@@ -34,6 +37,30 @@ class EmailController extends Controller
             $group = Group::with('users')->findOrFail($groupId);
             $allUsers = $group->users->sortBy('id')->values();
             $targetUsers = $allUsers;
+
+            // Skip users who already received the exact same campaign (group + subject + body).
+            $alreadySentEmails = EmailRecipient::query()
+                ->where('status', 'sent')
+                ->whereHas('emailSend', function ($query) use ($groupId, $validated) {
+                    $query->where('group_id', $groupId)
+                        ->where('subject', $validated['subject'])
+                        ->where('body', $validated['body']);
+                })
+                ->pluck('recipient_email')
+                ->filter()
+                ->map(fn ($email) => strtolower(trim($email)))
+                ->unique()
+                ->values();
+
+            $alreadySentSet = array_flip($alreadySentEmails->all());
+            $targetUsers = $targetUsers
+                ->reject(function ($user) use ($alreadySentSet) {
+                    $emailKey = strtolower(trim((string) $user->email));
+                    return isset($alreadySentSet[$emailKey]);
+                })
+                ->values();
+
+            $skippedCount = $allUsers->count() - $targetUsers->count();
             
             // Handle file attachments
             $attachments = [];
@@ -57,20 +84,31 @@ class EmailController extends Controller
                 'group_name' => $group->name,
                 'subject' => $validated['subject'],
                 'recipient_count' => $targetUsers->count(),
+                'skipped_count' => $skippedCount,
                 'user_id' => auth()->id(),
                 'user_email' => auth()->user()->email ?? null,
             ]);
 
             if ($targetUsers->isEmpty()) {
-                Log::warning('Email send attempt failed: Group has no members', [
+                Log::info('Email send skipped: all members already received this campaign', [
                     'group_id' => $groupId,
                     'group_name' => $group->name,
+                    'subject' => $validated['subject'],
+                    'skipped_count' => $skippedCount,
                 ]);
                 
                 return response()->json([
-                    'success' => false,
-                    'message' => 'No members found for the selected batch'
-                ], 400);
+                    'success' => true,
+                    'message' => "No new recipients. {$skippedCount} member(s) already received this email.",
+                    'data' => [
+                        'group' => $group->name,
+                        'sent' => 0,
+                        'failed' => 0,
+                        'skipped' => $skippedCount,
+                        'total' => $allUsers->count(),
+                        'errors' => []
+                    ]
+                ]);
             }
 
             // Create email send record
@@ -86,6 +124,8 @@ class EmailController extends Controller
             $sentCount = 0;
             $failedCount = 0;
             $errors = [];
+            $windowStartedAt = microtime(true);
+            $requestsInWindow = 0;
 
             foreach ($targetUsers as $user) {
                 $recipient = EmailRecipient::create([
@@ -96,37 +136,66 @@ class EmailController extends Controller
                     'status' => 'pending',
                 ]);
 
-                try {
-                    Log::info('Attempting to send email to user', [
-                        'user_id' => $user->id,
-                        'user_email' => $user->email,
-                        'user_name' => $user->name,
-                        'group_id' => $groupId,
-                        'subject' => $validated['subject'],
-                    ]);
+                $sendSucceeded = false;
+                $lastError = null;
 
-                    Mail::to($user->email)->send(
-                        new GroupEmail($validated['subject'], $validated['body'], $user->name, $attachments)
-                    );
+                for ($attempt = 1; $attempt <= 2; $attempt++) {
+                    try {
+                        $this->respectMailerSendRateLimit($windowStartedAt, $requestsInWindow);
 
+                        Log::info('Attempting to send email to user', [
+                            'user_id' => $user->id,
+                            'user_email' => $user->email,
+                            'user_name' => $user->name,
+                            'group_id' => $groupId,
+                            'subject' => $validated['subject'],
+                            'attempt' => $attempt,
+                        ]);
+
+                        Mail::to($user->email)->send(
+                            new GroupEmail($validated['subject'], $validated['body'], $user->name, $attachments)
+                        );
+
+                        $requestsInWindow++;
+                        $sendSucceeded = true;
+                        break;
+                    } catch (\Exception $e) {
+                        $lastError = $e->getMessage();
+
+                        if ($this->isMailerSendRateLimitError($lastError) && $attempt < 2) {
+                            Log::warning('MailerSend rate limit reached, waiting before retry', [
+                                'user_id' => $user->id,
+                                'user_email' => $user->email,
+                                'wait_seconds' => self::MAILERSEND_RATE_LIMIT_WAIT_SECONDS,
+                            ]);
+                            sleep(self::MAILERSEND_RATE_LIMIT_WAIT_SECONDS);
+                            $windowStartedAt = microtime(true);
+                            $requestsInWindow = 0;
+                            continue;
+                        }
+
+                        break;
+                    }
+                }
+
+                if ($sendSucceeded) {
                     $sentCount++;
 
                     $recipient->update([
                         'status' => 'sent',
                         'sent_at' => now(),
                     ]);
-                } catch (\Exception $e) {
+                } else {
                     $failedCount++;
-                    $errorMessage = $e->getMessage();
                     $errors[] = [
                         'user' => $user->email,
                         'user_name' => $user->name,
-                        'error' => $errorMessage
+                        'error' => $lastError ?? 'Failed to send email'
                     ];
 
                     $recipient->update([
                         'status' => 'failed',
-                        'error_message' => $errorMessage,
+                        'error_message' => $lastError ?? 'Failed to send email',
                     ]);
                 }
             }
@@ -170,10 +239,9 @@ class EmailController extends Controller
                     'error' => $errors[0]['error'] ?? 'Failed to send email',
                     'data' => [
                         'group' => $group->name,
-                        'batch_option' => $batchOption,
-                        'batch_label' => $batchLabel,
                         'sent' => $sentCount,
                         'failed' => $failedCount,
+                        'skipped' => $skippedCount,
                         'total' => $targetUsers->count(),
                         'errors' => $errors
                     ]
@@ -187,6 +255,7 @@ class EmailController extends Controller
                     'group' => $group->name,
                     'sent' => $sentCount,
                     'failed' => $failedCount,
+                    'skipped' => $skippedCount,
                     'total' => $targetUsers->count(),
                     'errors' => $errors
                 ]
@@ -221,5 +290,33 @@ class EmailController extends Controller
                 'error' => $errorMessage
             ], 500);
         }
+    }
+
+    private function respectMailerSendRateLimit(float &$windowStartedAt, int &$requestsInWindow): void
+    {
+        $elapsedSeconds = microtime(true) - $windowStartedAt;
+
+        if ($elapsedSeconds >= 60) {
+            $windowStartedAt = microtime(true);
+            $requestsInWindow = 0;
+            return;
+        }
+
+        if ($requestsInWindow >= self::MAILERSEND_MAX_REQUESTS_PER_MINUTE) {
+            $waitSeconds = (int) ceil(60 - $elapsedSeconds) + 1;
+            sleep(max($waitSeconds, 1));
+            $windowStartedAt = microtime(true);
+            $requestsInWindow = 0;
+        }
+    }
+
+    private function isMailerSendRateLimitError(?string $errorMessage): bool
+    {
+        if (!$errorMessage) {
+            return false;
+        }
+
+        return str_contains($errorMessage, '#MS42903')
+            || str_contains(strtolower($errorMessage), 'rate limit');
     }
 }
