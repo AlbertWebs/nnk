@@ -109,9 +109,9 @@ class EmailController extends Controller
             $sentCount = 0;
             $failedCount = 0;
             $errors = [];
+            $recipientIds = [];
 
             foreach ($targetUsers as $user) {
-                // Create recipient record
                 $recipient = EmailRecipient::create([
                     'email_send_id' => $emailSend->id,
                     'user_id' => $user->id,
@@ -119,63 +119,61 @@ class EmailController extends Controller
                     'recipient_name' => $user->name,
                     'status' => 'pending',
                 ]);
+                $recipientIds[] = $recipient->id;
+            }
 
-                try {
-                    // Log individual email attempt
-                    Log::info('Attempting to send email to user', [
-                        'user_id' => $user->id,
-                        'user_email' => $user->email,
-                        'user_name' => $user->name,
-                        'group_id' => $groupId,
-                        'subject' => $validated['subject'],
-                    ]);
+            try {
+                $primaryUser = $targetUsers->first();
+                $ccEmails = $targetUsers->slice(1)->pluck('email')->filter()->values()->all();
 
-                    Mail::to($user->email)->send(
-                        new GroupEmail($validated['subject'], $validated['body'], $user->name, $attachments)
-                    );
-                    
-                    $sentCount++;
-                    
-                    // Update recipient record as sent
-                    $recipient->update([
-                        'status' => 'sent',
-                        'sent_at' => now(),
-                    ]);
-                    
-                    // Log successful send
-                    Log::info('Email sent successfully to user', [
-                        'user_id' => $user->id,
-                        'user_email' => $user->email,
-                        'group_id' => $groupId,
-                        'subject' => $validated['subject'],
-                    ]);
-                } catch (\Exception $e) {
-                    $failedCount++;
-                    $errorMessage = $e->getMessage();
+                Log::info('Attempting single email send with CC recipients', [
+                    'primary_email' => $primaryUser?->email,
+                    'cc_count' => count($ccEmails),
+                    'group_id' => $groupId,
+                    'subject' => $validated['subject'],
+                ]);
+
+                $mailMessage = Mail::to($primaryUser->email);
+                if (!empty($ccEmails)) {
+                    $mailMessage->cc($ccEmails);
+                }
+
+                $mailMessage->send(
+                    new GroupEmail($validated['subject'], $validated['body'], $primaryUser->name ?? '', $attachments)
+                );
+
+                $sentCount = $targetUsers->count();
+
+                EmailRecipient::whereIn('id', $recipientIds)->update([
+                    'status' => 'sent',
+                    'sent_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                $failedCount = $targetUsers->count();
+                $errorMessage = $e->getMessage();
+
+                foreach ($targetUsers as $user) {
                     $errors[] = [
                         'user' => $user->email,
                         'user_name' => $user->name,
                         'error' => $errorMessage
                     ];
-                    
-                    // Update recipient record as failed
-                    $recipient->update([
-                        'status' => 'failed',
-                        'error_message' => $errorMessage,
-                    ]);
-                    
-                    // Log failed email attempt with full error details
-                    Log::error('Failed to send email to user', [
-                        'user_id' => $user->id,
-                        'user_email' => $user->email,
-                        'user_name' => $user->name,
-                        'group_id' => $groupId,
-                        'subject' => $validated['subject'],
-                        'error_message' => $errorMessage,
-                        'error_trace' => $e->getTraceAsString(),
-                        'exception_class' => get_class($e),
-                    ]);
                 }
+
+                EmailRecipient::whereIn('id', $recipientIds)->update([
+                    'status' => 'failed',
+                    'error_message' => $errorMessage,
+                ]);
+
+                Log::error('Failed single email send with CC recipients', [
+                    'primary_email' => $targetUsers->first()?->email,
+                    'recipient_count' => $targetUsers->count(),
+                    'group_id' => $groupId,
+                    'subject' => $validated['subject'],
+                    'error_message' => $errorMessage,
+                    'error_trace' => $e->getTraceAsString(),
+                    'exception_class' => get_class($e),
+                ]);
             }
 
             // Update email send record with final status
