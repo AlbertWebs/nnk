@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 class EmailController extends Controller
 {
     private const SENDABLE_BATCH_SIZE = 10;
+    private const RECIPIENTS_PER_API_REQUEST = 10;
     private const MAILERSEND_MAX_REQUESTS_PER_MINUTE = 9;
     private const MAILERSEND_RATE_LIMIT_WAIT_SECONDS = 65;
 
@@ -133,33 +134,48 @@ class EmailController extends Controller
             $windowStartedAt = microtime(true);
             $requestsInWindow = 0;
 
-            foreach ($targetUsers as $user) {
-                $recipient = EmailRecipient::create([
-                    'email_send_id' => $emailSend->id,
-                    'user_id' => $user->id,
-                    'recipient_email' => $user->email,
-                    'recipient_name' => $user->name,
-                    'status' => 'pending',
-                ]);
+            foreach ($targetUsers->chunk(self::RECIPIENTS_PER_API_REQUEST) as $chunk) {
+                $chunkRecipients = [];
+                foreach ($chunk as $user) {
+                    $recipient = EmailRecipient::create([
+                        'email_send_id' => $emailSend->id,
+                        'user_id' => $user->id,
+                        'recipient_email' => $user->email,
+                        'recipient_name' => $user->name,
+                        'status' => 'pending',
+                    ]);
+
+                    $chunkRecipients[] = [
+                        'model' => $recipient,
+                        'user' => $user,
+                    ];
+                }
 
                 $sendSucceeded = false;
                 $lastError = null;
+                $primaryUser = $chunk->first();
+                $bccEmails = $chunk->slice(1)->pluck('email')->filter()->values()->all();
 
                 for ($attempt = 1; $attempt <= 2; $attempt++) {
                     try {
                         $this->respectMailerSendRateLimit($windowStartedAt, $requestsInWindow);
 
-                        Log::info('Attempting to send email to user', [
-                            'user_id' => $user->id,
-                            'user_email' => $user->email,
-                            'user_name' => $user->name,
+                        Log::info('Attempting chunk email send', [
                             'group_id' => $groupId,
                             'subject' => $validated['subject'],
+                            'chunk_size' => $chunk->count(),
+                            'bcc_count' => count($bccEmails),
+                            'primary_user_id' => $primaryUser?->id,
                             'attempt' => $attempt,
                         ]);
 
-                        Mail::to($user->email)->send(
-                            new GroupEmail($validated['subject'], $validated['body'], $user->name, $attachments)
+                        $mail = Mail::to($primaryUser->email);
+                        if (!empty($bccEmails)) {
+                            $mail->bcc($bccEmails);
+                        }
+
+                        $mail->send(
+                            new GroupEmail($validated['subject'], $validated['body'], $primaryUser->name, $attachments)
                         );
 
                         $requestsInWindow++;
@@ -169,9 +185,9 @@ class EmailController extends Controller
                         $lastError = $e->getMessage();
 
                         if ($this->isMailerSendRateLimitError($lastError) && $attempt < 2) {
-                            Log::warning('MailerSend rate limit reached, waiting before retry', [
-                                'user_id' => $user->id,
-                                'user_email' => $user->email,
+                            Log::warning('MailerSend rate limit reached, waiting before retry chunk', [
+                                'group_id' => $groupId,
+                                'chunk_size' => $chunk->count(),
                                 'wait_seconds' => self::MAILERSEND_RATE_LIMIT_WAIT_SECONDS,
                             ]);
                             sleep(self::MAILERSEND_RATE_LIMIT_WAIT_SECONDS);
@@ -185,24 +201,27 @@ class EmailController extends Controller
                 }
 
                 if ($sendSucceeded) {
-                    $sentCount++;
-
-                    $recipient->update([
-                        'status' => 'sent',
-                        'sent_at' => now(),
-                    ]);
+                    foreach ($chunkRecipients as $entry) {
+                        $entry['model']->update([
+                            'status' => 'sent',
+                            'sent_at' => now(),
+                        ]);
+                        $sentCount++;
+                    }
                 } else {
-                    $failedCount++;
-                    $errors[] = [
-                        'user' => $user->email,
-                        'user_name' => $user->name,
-                        'error' => $lastError ?? 'Failed to send email'
-                    ];
+                    foreach ($chunkRecipients as $entry) {
+                        $errors[] = [
+                            'user' => $entry['user']->email,
+                            'user_name' => $entry['user']->name,
+                            'error' => $lastError ?? 'Failed to send email',
+                        ];
 
-                    $recipient->update([
-                        'status' => 'failed',
-                        'error_message' => $lastError ?? 'Failed to send email',
-                    ]);
+                        $entry['model']->update([
+                            'status' => 'failed',
+                            'error_message' => $lastError ?? 'Failed to send email',
+                        ]);
+                        $failedCount++;
+                    }
                 }
             }
 
