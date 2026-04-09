@@ -33,17 +33,6 @@
             </div>
             
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Batch Sending</label>
-                <select id="email-batch-option" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="all">Send to all members</option>
-                    <option value="first_third">Batch 1 (first third)</option>
-                    <option value="second_third">Batch 2 (second third)</option>
-                    <option value="third_third">Batch 3 (final third)</option>
-                </select>
-                <p id="batch-info" class="mt-2 text-sm text-gray-500">Choose Batch 1 today, Batch 2 tomorrow, then Batch 3 next day.</p>
-            </div>
-            
-            <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Email Subject</label>
                 <input type="text" id="email-subject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter email subject">
             </div>
@@ -200,9 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('email-group-select').addEventListener('change', function() {
         updateGroupInfo();
     });
-    document.getElementById('email-batch-option').addEventListener('change', function() {
-        updateGroupInfo();
-    });
     
     // Close modal when clicking outside
     const modal = document.getElementById('user-list-modal');
@@ -324,40 +310,13 @@ function updateGroupInfo() {
     const select = document.getElementById('email-group-select');
     const selectedOption = select.options[select.selectedIndex];
     const infoDiv = document.getElementById('group-info');
-    const batchSelect = document.getElementById('email-batch-option');
-    const batchInfoDiv = document.getElementById('batch-info');
     
     if (select.value && selectedOption.dataset.memberCount) {
         const memberCount = parseInt(selectedOption.dataset.memberCount, 10) || 0;
-        const { firstSize, secondSize, thirdSize } = getThreeBatchSizes(memberCount);
-        let targetCount = memberCount;
-        let batchText = 'all members';
-
-        if (batchSelect.value === 'first_third') {
-            targetCount = firstSize;
-            batchText = `Batch 1 (${firstSize} member${firstSize === 1 ? '' : 's'})`;
-        } else if (batchSelect.value === 'second_third') {
-            targetCount = secondSize;
-            batchText = `Batch 2 (${secondSize} member${secondSize === 1 ? '' : 's'})`;
-        } else if (batchSelect.value === 'third_third') {
-            targetCount = thirdSize;
-            batchText = `Batch 3 (${thirdSize} member${thirdSize === 1 ? '' : 's'})`;
-        }
-
-        infoDiv.textContent = `This email will be sent to ${targetCount} member(s) in ${batchText}.`;
+        infoDiv.textContent = `This email will be sent to ${memberCount} member(s) in this group.`;
         infoDiv.className = 'mt-2 text-sm text-blue-600';
     } else {
         infoDiv.textContent = '';
-    }
-
-    if (batchSelect.value === 'all') {
-        batchInfoDiv.textContent = 'Choose Batch 1 today, Batch 2 tomorrow, then Batch 3 next day.';
-    } else if (batchSelect.value === 'first_third') {
-        batchInfoDiv.textContent = 'Batch 1 selected: this sends the first third of members.';
-    } else if (batchSelect.value === 'second_third') {
-        batchInfoDiv.textContent = 'Batch 2 selected: this sends the second third of members.';
-    } else {
-        batchInfoDiv.textContent = 'Batch 3 selected: this sends the final third of members.';
     }
 }
 
@@ -411,7 +370,7 @@ async function loadGroupUsers(groupId) {
         const result = await response.json();
         
         if (result.success && result.data) {
-            const users = getUsersForSelectedBatch(result.data.users || []);
+            const users = result.data.users || [];
             document.getElementById('modal-member-count').textContent = users.length;
             
             if (users.length === 0) {
@@ -461,7 +420,6 @@ async function confirmSendEmail() {
     closeUserListModal();
     
     const groupId = document.getElementById('email-group-select').value;
-    const batchOption = document.getElementById('email-batch-option').value;
     const subject = document.getElementById('email-subject').value;
     const body = quillEditor.root.innerHTML.trim();
     
@@ -489,7 +447,6 @@ async function confirmSendEmail() {
         const formData = new FormData();
         formData.append('subject', subject);
         formData.append('body', body);
-        formData.append('batch_option', batchOption);
         
         // Add attachments if any
         if (selectedFiles.length > 0) {
@@ -522,9 +479,7 @@ async function confirmSendEmail() {
                 document.getElementById('email-subject').value = '';
                 quillEditor.setContents([]);
                 document.getElementById('email-group-select').value = '';
-                document.getElementById('email-batch-option').value = 'all';
                 document.getElementById('group-info').textContent = '';
-                document.getElementById('batch-info').textContent = 'Choose Batch 1 today, Batch 2 tomorrow, then Batch 3 next day.';
                 
                 // Clear attachments
                 selectedFiles = [];
@@ -690,7 +645,7 @@ function showSuccessMessage(data) {
                 </svg>
                 <div class="flex-1">
                     <p class="text-sm font-medium text-green-800">
-                        Email sent successfully to ${data.sent} member(s)${data.batch_label ? ` (${data.batch_label})` : ''}${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
+                        Email sent successfully to ${data.sent} member(s)${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
                     </p>
                 </div>
             </div>
@@ -699,40 +654,6 @@ function showSuccessMessage(data) {
     
     successDisplay.innerHTML = html;
     successDisplay.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function getUsersForSelectedBatch(users) {
-    const batchOption = document.getElementById('email-batch-option').value;
-    const sortedUsers = [...users].sort((a, b) => (a.id || 0) - (b.id || 0));
-
-    if (batchOption === 'all') {
-        return sortedUsers;
-    }
-
-    const { firstSize, secondSize } = getThreeBatchSizes(sortedUsers.length);
-    const secondStart = firstSize;
-    const thirdStart = firstSize + secondSize;
-
-    if (batchOption === 'first_third') {
-        return sortedUsers.slice(0, firstSize);
-    }
-
-    if (batchOption === 'second_third') {
-        return sortedUsers.slice(secondStart, thirdStart);
-    }
-
-    return sortedUsers.slice(thirdStart);
-}
-
-function getThreeBatchSizes(totalCount) {
-    const baseSize = Math.floor(totalCount / 3);
-    const remainder = totalCount % 3;
-
-    const firstSize = baseSize + (remainder > 0 ? 1 : 0);
-    const secondSize = baseSize + (remainder > 1 ? 1 : 0);
-    const thirdSize = baseSize;
-
-    return { firstSize, secondSize, thirdSize };
 }
 </script>
 @endpush
