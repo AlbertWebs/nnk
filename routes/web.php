@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/mailing-list/send-email', fn () => view('admin.send-email'))->name('mailing-list.send-email');
     Route::get('/mailing-list/mapping', fn () => view('admin.member-groups-mapping'))->name('mailing-list.mapping');
     Route::get('/mailing-list/history', [App\Http\Controllers\EmailHistoryController::class, 'index'])->name('mailing-list.history');
+    Route::delete('/mailing-list/history/purge-all', [App\Http\Controllers\EmailHistoryController::class, 'purgeAll'])->name('mailing-list.history.purge-all');
     Route::get('/mailing-list/history/{id}', [App\Http\Controllers\EmailHistoryController::class, 'show'])->name('mailing-list.history.detail');
     
     // Resources

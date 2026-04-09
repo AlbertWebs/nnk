@@ -33,6 +33,16 @@
             </div>
             
             <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Batch Sending</label>
+                <select id="email-batch-option" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="all">Send to all members</option>
+                    <option value="first_half">Batch 1 (first half)</option>
+                    <option value="second_half">Batch 2 (second half)</option>
+                </select>
+                <p id="batch-info" class="mt-2 text-sm text-gray-500">Choose "Batch 1" today, then "Batch 2" tomorrow.</p>
+            </div>
+            
+            <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Email Subject</label>
                 <input type="text" id="email-subject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter email subject">
             </div>
@@ -189,6 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('email-group-select').addEventListener('change', function() {
         updateGroupInfo();
     });
+    document.getElementById('email-batch-option').addEventListener('change', function() {
+        updateGroupInfo();
+    });
     
     // Close modal when clicking outside
     const modal = document.getElementById('user-list-modal');
@@ -310,13 +323,35 @@ function updateGroupInfo() {
     const select = document.getElementById('email-group-select');
     const selectedOption = select.options[select.selectedIndex];
     const infoDiv = document.getElementById('group-info');
+    const batchSelect = document.getElementById('email-batch-option');
+    const batchInfoDiv = document.getElementById('batch-info');
     
     if (select.value && selectedOption.dataset.memberCount) {
-        const memberCount = selectedOption.dataset.memberCount;
-        infoDiv.textContent = `This email will be sent to ${memberCount} member(s) in this group.`;
+        const memberCount = parseInt(selectedOption.dataset.memberCount, 10) || 0;
+        const halfPoint = Math.ceil(memberCount / 2);
+        let targetCount = memberCount;
+        let batchText = 'all members';
+
+        if (batchSelect.value === 'first_half') {
+            targetCount = halfPoint;
+            batchText = `Batch 1 (${halfPoint} member${halfPoint === 1 ? '' : 's'})`;
+        } else if (batchSelect.value === 'second_half') {
+            targetCount = memberCount - halfPoint;
+            batchText = `Batch 2 (${memberCount - halfPoint} member${memberCount - halfPoint === 1 ? '' : 's'})`;
+        }
+
+        infoDiv.textContent = `This email will be sent to ${targetCount} member(s) in ${batchText}.`;
         infoDiv.className = 'mt-2 text-sm text-blue-600';
     } else {
         infoDiv.textContent = '';
+    }
+
+    if (batchSelect.value === 'all') {
+        batchInfoDiv.textContent = 'Choose "Batch 1" today, then "Batch 2" tomorrow.';
+    } else if (batchSelect.value === 'first_half') {
+        batchInfoDiv.textContent = 'Batch 1 selected: this sends the first half of members.';
+    } else {
+        batchInfoDiv.textContent = 'Batch 2 selected: this sends the second half of members.';
     }
 }
 
@@ -370,7 +405,7 @@ async function loadGroupUsers(groupId) {
         const result = await response.json();
         
         if (result.success && result.data) {
-            const users = result.data.users || [];
+            const users = getUsersForSelectedBatch(result.data.users || []);
             document.getElementById('modal-member-count').textContent = users.length;
             
             if (users.length === 0) {
@@ -420,6 +455,7 @@ async function confirmSendEmail() {
     closeUserListModal();
     
     const groupId = document.getElementById('email-group-select').value;
+    const batchOption = document.getElementById('email-batch-option').value;
     const subject = document.getElementById('email-subject').value;
     const body = quillEditor.root.innerHTML.trim();
     
@@ -447,6 +483,7 @@ async function confirmSendEmail() {
         const formData = new FormData();
         formData.append('subject', subject);
         formData.append('body', body);
+        formData.append('batch_option', batchOption);
         
         // Add attachments if any
         if (selectedFiles.length > 0) {
@@ -479,7 +516,9 @@ async function confirmSendEmail() {
                 document.getElementById('email-subject').value = '';
                 quillEditor.setContents([]);
                 document.getElementById('email-group-select').value = '';
+                document.getElementById('email-batch-option').value = 'all';
                 document.getElementById('group-info').textContent = '';
+                document.getElementById('batch-info').textContent = 'Choose "Batch 1" today, then "Batch 2" tomorrow.';
                 
                 // Clear attachments
                 selectedFiles = [];
@@ -643,7 +682,7 @@ function showSuccessMessage(data) {
                 </svg>
                 <div class="flex-1">
                     <p class="text-sm font-medium text-green-800">
-                        Email sent successfully to ${data.sent} member(s)${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
+                        Email sent successfully to ${data.sent} member(s)${data.batch_label ? ` (${data.batch_label})` : ''}${data.failed > 0 ? ` (${data.failed} failed)` : ''}!
                     </p>
                 </div>
             </div>
@@ -652,6 +691,22 @@ function showSuccessMessage(data) {
     
     successDisplay.innerHTML = html;
     successDisplay.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function getUsersForSelectedBatch(users) {
+    const batchOption = document.getElementById('email-batch-option').value;
+    const sortedUsers = [...users].sort((a, b) => (a.id || 0) - (b.id || 0));
+
+    if (batchOption === 'all') {
+        return sortedUsers;
+    }
+
+    const halfPoint = Math.ceil(sortedUsers.length / 2);
+    if (batchOption === 'first_half') {
+        return sortedUsers.slice(0, halfPoint);
+    }
+
+    return sortedUsers.slice(halfPoint);
 }
 </script>
 @endpush

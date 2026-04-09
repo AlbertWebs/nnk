@@ -16,7 +16,30 @@
                 </a>
             </div>
 
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Email Send History</h2>
+            @if(session('success'))
+                <div class="mb-6 p-4 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-6 p-4 rounded-lg border border-red-200 bg-red-50 text-red-800 text-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Email Send History</h2>
+                @if($emailSends->count() > 0)
+                    <form action="{{ route('admin.mailing-list.history.purge-all') }}" method="POST" onsubmit="return confirm('Are you sure you want to purge all sent email history? This cannot be undone.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
+                            Purge All Sent Emails
+                        </button>
+                    </form>
+                @endif
+            </div>
 
             @if($emailSends->count() > 0)
                 <div class="overflow-x-auto">

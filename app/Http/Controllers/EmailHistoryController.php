@@ -29,4 +29,24 @@ class EmailHistoryController extends Controller
 
         return view('admin.email-history-detail', compact('emailSend'));
     }
+
+    /**
+     * Purge all sent email history records.
+     */
+    public function purgeAll(Request $request)
+    {
+        try {
+            $deletedCount = EmailSend::whereNotNull('sent_at')
+                ->orWhereIn('status', ['completed', 'failed'])
+                ->delete();
+
+            return redirect()
+                ->route('admin.mailing-list.history')
+                ->with('success', "Purged {$deletedCount} sent email history record(s).");
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('admin.mailing-list.history')
+                ->with('error', 'Failed to purge email history. Please try again.');
+        }
+    }
 }

@@ -28,10 +28,25 @@ class EmailController extends Controller
             $validated = $request->validate([
                 'subject' => 'required|string|max:255',
                 'body' => 'required|string',
+                'batch_option' => 'nullable|string|in:all,first_half,second_half',
                 'attachments.*' => 'nullable|file|max:10240', // Max 10MB per file
             ]);
 
             $group = Group::with('users')->findOrFail($groupId);
+            $batchOption = $validated['batch_option'] ?? 'all';
+            $allUsers = $group->users->sortBy('id')->values();
+            $halfPoint = (int) ceil($allUsers->count() / 2);
+
+            if ($batchOption === 'first_half') {
+                $targetUsers = $allUsers->slice(0, $halfPoint)->values();
+                $batchLabel = 'Batch 1';
+            } elseif ($batchOption === 'second_half') {
+                $targetUsers = $allUsers->slice($halfPoint)->values();
+                $batchLabel = 'Batch 2';
+            } else {
+                $targetUsers = $allUsers;
+                $batchLabel = 'All members';
+            }
             
             // Handle file attachments
             $attachments = [];
@@ -54,20 +69,22 @@ class EmailController extends Controller
                 'group_id' => $groupId,
                 'group_name' => $group->name,
                 'subject' => $validated['subject'],
-                'recipient_count' => $group->users->count(),
+                'recipient_count' => $targetUsers->count(),
+                'batch_option' => $batchOption,
                 'user_id' => auth()->id(),
                 'user_email' => auth()->user()->email ?? null,
             ]);
 
-            if ($group->users->isEmpty()) {
+            if ($targetUsers->isEmpty()) {
                 Log::warning('Email send attempt failed: Group has no members', [
                     'group_id' => $groupId,
                     'group_name' => $group->name,
+                    'batch_option' => $batchOption,
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Group has no members'
+                    'message' => 'No members found for the selected batch'
                 ], 400);
             }
 
@@ -77,7 +94,7 @@ class EmailController extends Controller
                 'subject' => $validated['subject'],
                 'body' => $validated['body'],
                 'sent_by' => auth()->id(),
-                'total_recipients' => $group->users->count(),
+                'total_recipients' => $targetUsers->count(),
                 'status' => 'sending',
             ]);
 
@@ -85,7 +102,7 @@ class EmailController extends Controller
             $failedCount = 0;
             $errors = [];
 
-            foreach ($group->users as $user) {
+            foreach ($targetUsers as $user) {
                 // Create recipient record
                 $recipient = EmailRecipient::create([
                     'email_send_id' => $emailSend->id,
@@ -157,7 +174,7 @@ class EmailController extends Controller
             $emailSend->update([
                 'sent_count' => $sentCount,
                 'failed_count' => $failedCount,
-                'status' => $failedCount === $group->users->count() ? 'failed' : 'completed',
+                'status' => $failedCount === $targetUsers->count() ? 'failed' : 'completed',
                 'errors' => $errors,
                 'sent_at' => now(),
             ]);
@@ -176,9 +193,10 @@ class EmailController extends Controller
                 'group_id' => $groupId,
                 'group_name' => $group->name,
                 'subject' => $validated['subject'],
-                'total_recipients' => $group->users->count(),
+                'total_recipients' => $targetUsers->count(),
                 'sent_count' => $sentCount,
                 'failed_count' => $failedCount,
+                'batch_option' => $batchOption,
                 'duration_seconds' => $duration,
                 'user_id' => auth()->id(),
             ]);
@@ -188,9 +206,11 @@ class EmailController extends Controller
                 'message' => "Email sent to {$sentCount} member(s)" . ($failedCount > 0 ? ", {$failedCount} failed" : ''),
                 'data' => [
                     'group' => $group->name,
+                    'batch_option' => $batchOption,
+                    'batch_label' => $batchLabel,
                     'sent' => $sentCount,
                     'failed' => $failedCount,
-                    'total' => $group->users->count(),
+                    'total' => $targetUsers->count(),
                     'errors' => $errors
                 ]
             ]);
